@@ -22,5 +22,10 @@ export class Preload extends Phaser.Scene {
     this.startText = this.add.text(400, 300, 'START', this.fontStyle)
 
     this.startText.setOrigin(0.5)
+
+    this.startText.setInteractive()
+    this.startText.on('pointerdown', () => {
+      this.scene.start('game')
+    })
   }
 }
