@@ -1,10 +1,14 @@
 import * as Phaser from "phaser";
 
+type WalkAnimState = 'walk_front' | 'walk_back' | 'walk_left' | 'walk_right' | ''
+
 export class Game extends Phaser.Scene {
   private map?: Phaser.Tilemaps.Tilemap
   private tiles?: Phaser.Tilemaps.Tileset
   private map_ground_layer?: Phaser.Tilemaps.StaticTilemapLayer
   private hero?: Phaser.GameObjects.Sprite
+  private heroAnimState: WalkAnimState
+  private cursors?: Phaser.Types.Input.Keyboard.CursorKeys
 
   private heroAnims: {key: string, frameStart: number, frameEnd: number}[] = [
     {key: 'walk_front', frameStart: 0, frameEnd: 2},
@@ -33,6 +37,9 @@ export class Game extends Phaser.Scene {
 
   init() {
     console.log('Initializing.')
+
+    this.cursors = this.input.keyboard.createCursorKeys();
+    this.heroAnimState = ''
   }
 
   preload() {
@@ -62,6 +69,27 @@ export class Game extends Phaser.Scene {
 
   update() {
     console.log('Call at every frames.')
+
+    let heroAnimState: WalkAnimState = ''
+
+    if(this.cursors.up.isDown){ 
+      heroAnimState = 'walk_back'
+    }else if(this.cursors.down.isDown){
+      heroAnimState = 'walk_front'
+    }else if(this.cursors.left.isDown){
+      heroAnimState = 'walk_left'
+    }else if(this.cursors.right.isDown){
+      heroAnimState = 'walk_right'
+    }else{
+      this.hero.anims.stop()
+      this.heroAnimState = ''
+      return
+    }
+
+    if(this.heroAnimState != heroAnimState){
+      this.hero.anims.play(heroAnimState)
+      this.heroAnimState = heroAnimState
+    }
   }
 
   private heroAnimConfig(config: {key: string, frameStart: number, frameEnd: number}): Phaser.Types.Animations.Animation{
