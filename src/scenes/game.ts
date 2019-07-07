@@ -1,6 +1,7 @@
 import * as Phaser from "phaser";
 
 type WalkAnimState = 'walk_front' | 'walk_back' | 'walk_left' | 'walk_right' | ''
+type MoveDir = -1 | 0 | 1
 
 export class Game extends Phaser.Scene {
   private map?: Phaser.Tilemaps.Tilemap
@@ -9,6 +10,8 @@ export class Game extends Phaser.Scene {
   private hero?: Phaser.GameObjects.Sprite
   private heroAnimState: WalkAnimState
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys
+  private heroIsWalking: boolean
+  private heroWalkSpeed: number = 40
 
   private heroAnims: {key: string, frameStart: number, frameEnd: number}[] = [
     {key: 'walk_front', frameStart: 0, frameEnd: 2},
@@ -40,6 +43,8 @@ export class Game extends Phaser.Scene {
 
     this.cursors = this.input.keyboard.createCursorKeys();
     this.heroAnimState = ''
+    
+    this.heroIsWalking = false
   }
 
   preload() {
@@ -56,7 +61,7 @@ export class Game extends Phaser.Scene {
     this.tiles = this.map.addTilesetImage(`mapTiles`)
     this.map_ground_layer = this.map.createStaticLayer(0, this.tiles, 0, 0)
 
-    this.hero = this.add.sprite(400, 300, 'hero', 0)
+    this.hero = this.add.sprite(420, 300, 'hero', 0)
 
     for(let heroAnim of this.heroAnims){
       if(this.anims.create(this.heroAnimConfig(heroAnim)) === false) continue
@@ -70,26 +75,57 @@ export class Game extends Phaser.Scene {
   update() {
     console.log('Call at every frames.')
 
+    if(this.heroIsWalking) return
+
     let heroAnimState: WalkAnimState = ''
+    let heroXDir: MoveDir = 0
+    let heroYDir: MoveDir = 0
 
     if(this.cursors.up.isDown){ 
       heroAnimState = 'walk_back'
+      heroYDir = -1
     }else if(this.cursors.down.isDown){
       heroAnimState = 'walk_front'
+      heroYDir = 1
     }else if(this.cursors.left.isDown){
       heroAnimState = 'walk_left'
+      heroXDir = -1
     }else if(this.cursors.right.isDown){
       heroAnimState = 'walk_right'
+      heroXDir = 1
     }else{
       this.hero.anims.stop()
       this.heroAnimState = ''
       return
     }
 
+    this.heroIsWalking = true
+    this.gridWalkTween(this.hero, this.heroWalkSpeed, heroXDir, heroYDir, () => {this.heroIsWalking = false})
+
     if(this.heroAnimState != heroAnimState){
       this.hero.anims.play(heroAnimState)
       this.heroAnimState = heroAnimState
     }
+  }
+
+
+  private gridWalkTween(target: any, baseSpeed: number, xDir: MoveDir, yDir: MoveDir, onComplete: () => void){
+    if(!target.x) return 
+    if(!target.y) return
+
+    this.add.tween({
+      targets: [target],
+      x: {
+        getStart: () => target.x,
+        getEnd: () => target.x + (baseSpeed * xDir)
+      },
+      y: {
+        getStart: () => target.y,
+        getEnd: () => target.y + (baseSpeed * yDir)
+      },
+      duration: 300,
+      onComplete: onComplete
+    })
   }
 
   private heroAnimConfig(config: {key: string, frameStart: number, frameEnd: number}): Phaser.Types.Animations.Animation{
