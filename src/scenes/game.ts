@@ -118,8 +118,8 @@ export class Game extends Phaser.Scene {
   }
 
   private gridWalkTween(target: any, baseSpeed: number, xDir: MoveDir, yDir: MoveDir, onComplete: () => void){
-    if(!target.x) return 
-    if(!target.y) return
+    if(target.x === false) return 
+    if(target.y === false) return
 
     let tween: Phaser.Tweens.Tween = this.add.tween({
       targets: [target],
