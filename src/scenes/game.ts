@@ -62,6 +62,7 @@ export class Game extends Phaser.Scene {
     this.map_ground_layer = this.map.createStaticLayer(0, this.tiles, 0, 0)
 
     this.hero = this.add.sprite(420, 300, 'hero', 0)
+    this.hero.setDisplaySize(40, 40)
 
     for(let heroAnim of this.heroAnims){
       if(this.anims.create(this.heroAnimConfig(heroAnim)) === false) continue
