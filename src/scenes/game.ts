@@ -12,6 +12,7 @@ export class Game extends Phaser.Scene {
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys
   private heroIsWalking: boolean
   private heroWalkSpeed: number = 40
+  private heroTilePos: {tx: number, ty: number}
 
   private heroAnims: {key: string, frameStart: number, frameEnd: number}[] = [
     {key: 'walk_front', frameStart: 0, frameEnd: 2},
@@ -45,6 +46,8 @@ export class Game extends Phaser.Scene {
     this.heroAnimState = ''
     
     this.heroIsWalking = false
+
+    this.heroTilePos = {tx: 10, ty: 8}
   }
 
   preload() {
@@ -57,11 +60,16 @@ export class Game extends Phaser.Scene {
   create() {
     console.log('Draw objects to canvas.')
 
+    let heroPos: Phaser.Math.Vector2
+
     this.map = this.make.tilemap({ data: this.map_ground, tileWidth: 40, tileHeight: 40 })
     this.tiles = this.map.addTilesetImage(`mapTiles`)
     this.map_ground_layer = this.map.createStaticLayer(0, this.tiles, 0, 0)
 
-    this.hero = this.add.sprite(420, 300, 'hero', 0)
+    heroPos = this.map_ground_layer.tileToWorldXY(this.heroTilePos.tx, this.heroTilePos.ty)
+
+    this.hero = this.add.sprite(heroPos.x, heroPos.y, 'hero', 0)
+    this.hero.setOrigin(0)
     this.hero.setDisplaySize(40, 40)
 
     for(let heroAnim of this.heroAnims){
@@ -108,7 +116,6 @@ export class Game extends Phaser.Scene {
       this.heroAnimState = heroAnimState
     }
   }
-
 
   private gridWalkTween(target: any, baseSpeed: number, xDir: MoveDir, yDir: MoveDir, onComplete: () => void){
     if(!target.x) return 
