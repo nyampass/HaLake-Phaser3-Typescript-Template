@@ -113,7 +113,7 @@ export class Game extends Phaser.Scene {
     if(!target.x) return 
     if(!target.y) return
 
-    this.add.tween({
+    let tween: Phaser.Tweens.Tween = this.add.tween({
       targets: [target],
       x: {
         getStart: () => target.x,
@@ -124,7 +124,10 @@ export class Game extends Phaser.Scene {
         getEnd: () => target.y + (baseSpeed * yDir)
       },
       duration: 300,
-      onComplete: onComplete
+      onComplete: () => {
+        tween.stop()
+        onComplete()
+      }
     })
   }
 
