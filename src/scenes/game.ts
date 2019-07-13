@@ -7,7 +7,7 @@ export class Game extends Phaser.Scene {
   private map?: Phaser.Tilemaps.Tilemap
   private tiles?: Phaser.Tilemaps.Tileset
   private map_ground_layer?: Phaser.Tilemaps.StaticTilemapLayer
-  private hero?: Phaser.GameObjects.Sprite
+  private hero?: Phaser.Physics.Arcade.Sprite 
   private heroAnimState: WalkAnimState
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys
   private heroIsWalking: boolean
@@ -68,7 +68,9 @@ export class Game extends Phaser.Scene {
 
     heroPos = this.map_ground_layer.tileToWorldXY(this.heroTilePos.tx, this.heroTilePos.ty)
 
-    this.hero = this.add.sprite(heroPos.x, heroPos.y, 'hero', 0)
+    this.add.sprite
+    this.hero = this.physics.add.sprite(heroPos.x, heroPos.y, 'hero', 0)
+    this.hero.setCollideWorldBounds(true)
     this.hero.setOrigin(0)
     this.hero.setDisplaySize(40, 40)
 

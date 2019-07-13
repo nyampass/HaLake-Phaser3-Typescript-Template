@@ -9,6 +9,12 @@ class Main extends Phaser.Game {
       type: Phaser.AUTO,
       width: 800,
       height: 600,
+      physics: {
+        default: 'arcade',
+        arcade: {
+          debug: true
+        }
+      }
     };
     super(config);
 
