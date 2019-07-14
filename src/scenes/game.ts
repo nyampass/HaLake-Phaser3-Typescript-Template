@@ -7,7 +7,7 @@ export class Game extends Phaser.Scene {
   private map?: Phaser.Tilemaps.Tilemap
   private tiles?: Phaser.Tilemaps.Tileset
   private map_ground_layer?: Phaser.Tilemaps.StaticTilemapLayer
-  private hero?: Phaser.Physics.Arcade.Sprite 
+  private hero?: Phaser.GameObjects.Sprite 
   private heroAnimState: WalkAnimState
   private cursors?: Phaser.Types.Input.Keyboard.CursorKeys
   private heroIsWalking: boolean
@@ -68,10 +68,7 @@ export class Game extends Phaser.Scene {
 
     heroPos = this.map_ground_layer.tileToWorldXY(this.heroTilePos.tx, this.heroTilePos.ty)
 
-    this.add.sprite
-    this.hero = this.physics.add.sprite(heroPos.x, heroPos.y, 'hero', 0)
-    this.hero.setCollideWorldBounds(true)
-    this.hero.setOrigin(0)
+    this.hero = this.add.sprite(heroPos.x + 20, heroPos.y + 20, 'hero', 0)
     this.hero.setDisplaySize(40, 40)
 
     for(let heroAnim of this.heroAnims){
@@ -111,16 +108,17 @@ export class Game extends Phaser.Scene {
       return
     }
 
-    heroNewTilePos = {tx: heroNewTilePos.tx + heroXDir, ty: heroNewTilePos.ty + heroYDir}
-    if(heroNewTilePos.tx < 0) return 
-    if(heroNewTilePos.ty < 0) return
-    if(heroNewTilePos.tx >= 20) return 
-    if(heroNewTilePos.ty >= 15) return
-
     if(this.heroAnimState != heroAnimState){
       this.hero.anims.play(heroAnimState)
       this.heroAnimState = heroAnimState
     }
+
+    heroNewTilePos = {tx: heroNewTilePos.tx + heroXDir, ty: heroNewTilePos.ty + heroYDir}
+
+    if(heroNewTilePos.tx < 0) return 
+    if(heroNewTilePos.ty < 0) return
+    if(heroNewTilePos.tx >= 20) return 
+    if(heroNewTilePos.ty >= 15) return
 
     if(this.map_ground[heroNewTilePos.ty][heroNewTilePos.tx] == 1) return
 

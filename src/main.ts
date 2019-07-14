@@ -8,13 +8,7 @@ class Main extends Phaser.Game {
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
       width: 800,
-      height: 600,
-      physics: {
-        default: 'arcade',
-        arcade: {
-          debug: true
-        }
-      }
+      height: 600
     };
     super(config);
 
