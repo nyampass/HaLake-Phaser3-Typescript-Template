@@ -91,6 +91,7 @@ export class Game extends Phaser.Scene {
     let heroAnimState: WalkAnimState = ''
     let heroXDir: MoveDir = 0
     let heroYDir: MoveDir = 0
+    let heroNewTilePos: {tx: number, ty: number} = this.heroTilePos
 
     if(this.cursors.up.isDown){ 
       heroAnimState = 'walk_back'
@@ -110,13 +111,22 @@ export class Game extends Phaser.Scene {
       return
     }
 
-    this.heroIsWalking = true
-    this.gridWalkTween(this.hero, this.heroWalkSpeed, heroXDir, heroYDir, () => {this.heroIsWalking = false})
+    heroNewTilePos = {tx: heroNewTilePos.tx + heroXDir, ty: heroNewTilePos.ty + heroYDir}
+    if(heroNewTilePos.tx < 0) return 
+    if(heroNewTilePos.ty < 0) return
+    if(heroNewTilePos.tx >= 20) return 
+    if(heroNewTilePos.ty >= 15) return
 
     if(this.heroAnimState != heroAnimState){
       this.hero.anims.play(heroAnimState)
       this.heroAnimState = heroAnimState
     }
+
+    if(this.map_ground[heroNewTilePos.ty][heroNewTilePos.tx] == 1) return
+
+    this.heroTilePos = heroNewTilePos
+    this.heroIsWalking = true
+    this.gridWalkTween(this.hero, this.heroWalkSpeed, heroXDir, heroYDir, () => {this.heroIsWalking = false})
   }
 
   private gridWalkTween(target: any, baseSpeed: number, xDir: MoveDir, yDir: MoveDir, onComplete: () => void){
