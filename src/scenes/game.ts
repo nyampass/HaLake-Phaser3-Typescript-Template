@@ -4,15 +4,30 @@ type WalkAnimState = 'walk_front' | 'walk_back' | 'walk_left' | 'walk_right' | '
 type MoveDir = -1 | 0 | 1
 
 export class Game extends Phaser.Scene {
-  private map?: Phaser.Tilemaps.Tilemap
-  private tiles?: Phaser.Tilemaps.Tileset
-  private map_ground_layer?: Phaser.Tilemaps.StaticTilemapLayer
-  private hero?: Phaser.GameObjects.Sprite 
+  private map: Phaser.Tilemaps.Tilemap
+  private mapEvent: Phaser.Tilemaps.Tilemap
+  private tiles: Phaser.Tilemaps.Tileset
+  private map_ground_layer: Phaser.Tilemaps.StaticTilemapLayer
+  private map_event_layer: Phaser.Tilemaps.StaticTilemapLayer
+  private hero: Phaser.GameObjects.Sprite 
   private heroAnimState: WalkAnimState
-  private cursors?: Phaser.Types.Input.Keyboard.CursorKeys
+  private cursors: Phaser.Types.Input.Keyboard.CursorKeys
   private heroIsWalking: boolean
+  private heroIsTalking: boolean
   private heroWalkSpeed: number = 40
   private heroTilePos: {tx: number, ty: number}
+  private serifFrame: Phaser.GameObjects.Image
+  private serif: Phaser.GameObjects.Text
+  private serifArea: Phaser.GameObjects.Container
+
+  private serifStyle: object = {
+    fontSize: '40px',
+    color: 'black',
+    wordWrap: { 
+      width: 730, 
+      useAdvancedWrap: true 
+    }
+  }
 
   private heroAnims: {key: string, frameStart: number, frameEnd: number}[] = [
     {key: 'walk_front', frameStart: 0, frameEnd: 2},
@@ -39,6 +54,24 @@ export class Game extends Phaser.Scene {
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
   ] // 20 * 15
 
+  private map_event: number[][] = [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  ] // 20 * 15
+
   init() {
     console.log('Initializing.')
 
@@ -46,6 +79,7 @@ export class Game extends Phaser.Scene {
     this.heroAnimState = ''
     
     this.heroIsWalking = false
+    this.heroIsTalking = false
 
     this.heroTilePos = {tx: 10, ty: 8}
   }
@@ -54,7 +88,9 @@ export class Game extends Phaser.Scene {
     console.log('Load assets.')
 
     this.load.image('mapTiles', `../../assets/images/map_tile.png`)
+    this.load.image('mapEventTiles', `../../assets/images/npcs.png`)
     this.load.spritesheet('hero', '../../assets/images/hero.png', { frameWidth: 32, frameHeight: 32 });
+    this.load.image('serifFrame', '../../assets/images/frame.png')
   }
 
   create() {
@@ -66,10 +102,23 @@ export class Game extends Phaser.Scene {
     this.tiles = this.map.addTilesetImage(`mapTiles`)
     this.map_ground_layer = this.map.createStaticLayer(0, this.tiles, 0, 0)
 
+    this.mapEvent = this.make.tilemap({ data: this.map_event, tileWidth:40, tileHeight: 40 })
+    this.tiles = this.mapEvent.addTilesetImage(`mapEventTiles`)
+    this.map_event_layer = this.mapEvent.createStaticLayer(0, this.tiles, 0, 0)
+
     heroPos = this.map_ground_layer.tileToWorldXY(this.heroTilePos.tx, this.heroTilePos.ty)
 
     this.hero = this.add.sprite(heroPos.x + 20, heroPos.y + 20, 'hero', 0)
     this.hero.setDisplaySize(40, 40)
+
+    this.serifFrame = this.add.image(0, 0, 'serifFrame')
+    this.serifFrame.setDisplaySize(800, 120)
+
+    this.serif = this.add.text(-370, -50, '', this.serifStyle)
+
+    this.serifArea = this.add.container(400, 540)
+    this.serifArea.add([this.serifFrame, this.serif])
+    this.serifArea.setVisible(false)
 
     for(let heroAnim of this.heroAnims){
       if(this.anims.create(this.heroAnimConfig(heroAnim)) === false) continue
@@ -78,12 +127,45 @@ export class Game extends Phaser.Scene {
     }
 
     this.hero.anims.play('walk_front')
+
+    this.input.keyboard.addKey('Enter').on('down', () => {
+      const heroFacing: {tx: number, ty: number} | undefined = this.getNowHeroFaceTilePos()
+      const heroLastAnim: WalkAnimState | string = this.hero.anims.getCurrentKey()
+      const eventIndex: number = this.map_event[heroFacing.ty][heroFacing.tx]
+      let serif: string = ``
+
+      if(heroFacing === undefined) return
+      if(eventIndex <= 0) return
+
+      if(this.heroIsTalking){
+        this.heroIsTalking = false
+        this.serifArea.setVisible(false)
+      }else{
+
+        this.heroIsTalking = true
+
+        if(eventIndex == 2){
+          if(heroLastAnim == 'walk_back') serif = 'にゃ〜'
+          else serif = 'しょうめんからはなしかけてくれにゃ〜'
+        }else if(eventIndex == 1){
+          if(heroLastAnim == 'walk_back') serif = 'あらあら、こんにちわ'
+          else serif = 'しょうめんからはなしかけてもらえるとうれしいんだけどねぇ〜'
+        }else if(eventIndex == 3){
+          if(heroLastAnim == 'walk_back') serif = 'よくきたな'
+          else serif = 'しょうめんからはなしかけないとたましいをいただく'
+        }else return
+
+        this.serifArea.setVisible(true)
+        this.serif.text = serif
+      }
+    })
   }
 
   update() {
     console.log('Call at every frames.')
 
     if(this.heroIsWalking) return
+    if(this.heroIsTalking) return 
 
     let heroAnimState: WalkAnimState = ''
     let heroXDir: MoveDir = 0
@@ -121,10 +203,35 @@ export class Game extends Phaser.Scene {
     if(heroNewTilePos.ty >= 15) return
 
     if(this.map_ground[heroNewTilePos.ty][heroNewTilePos.tx] == 1) return
+    if(this.map_event[heroNewTilePos.ty][heroNewTilePos.tx] != 0) return
 
     this.heroTilePos = heroNewTilePos
     this.heroIsWalking = true
     this.gridWalkTween(this.hero, this.heroWalkSpeed, heroXDir, heroYDir, () => {this.heroIsWalking = false})
+  }
+
+  private getNowHeroFaceTilePos(): {tx: number, ty: number} | undefined{
+    if(this.heroIsWalking) return undefined
+
+    const heroLastAnim: WalkAnimState | string = this.hero.anims.getCurrentKey()
+    let dir: {dx: MoveDir, dy: MoveDir} = {dx: 0, dy: 0}
+    let nowPos: {tx: number, ty: number} = this.heroTilePos
+    let facing: {tx: number, ty: number} = {tx: 0, ty: 0}
+
+    if(heroLastAnim == 'walk_front')
+      dir.dy = 1
+    else if(heroLastAnim == 'walk_left')
+      dir.dx = -1
+    else if(heroLastAnim == 'walk_right')
+      dir.dx = 1
+    else if(heroLastAnim == 'walk_back')
+      dir.dy = -1
+
+    facing = {tx: nowPos.tx + dir.dx, ty: nowPos.ty + dir.dy}
+    if(facing.tx > 20 || facing.tx < 0) return undefined
+    if(facing.ty > 15 || facing.ty < 0) return undefined
+
+    return facing
   }
 
   private gridWalkTween(target: any, baseSpeed: number, xDir: MoveDir, yDir: MoveDir, onComplete: () => void){
