@@ -4,7 +4,7 @@
   "description": "",
   "main": "./dist/main.js",
   "scripts": {
-    "dev": "NODE_ENV=development webpack --watch & live-server --port=8080 --watch=src,images,audios,dist"
+    "dev": "NODE_ENV=development webpack --watch & live-server --port=8080 --watch=src,images,audios,dist_client"
   },
   "author": "",
   "license": "ISC",
@@ -14,6 +14,7 @@
     "webpack-cli": "^3.3.5"
   },
   "devDependencies": {
+    "@types/node": "^12.7.4",
     "live-server": "^1.2.1",
     "ts-loader": "^6.0.4",
     "typescript": "^3.5.2",

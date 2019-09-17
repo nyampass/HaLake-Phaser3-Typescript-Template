@@ -1,19 +1,35 @@
-import * as Phaser from "phaser";
+import * as Phaser from "phaser"
+import { groundLayer } from "../gameLayers"
+import { Player } from "../objects/player"
+import { SpriteFrame } from "../gameParameters"
 
 export class Game extends Phaser.Scene {
-  init() {
-    console.log('Initializing.')
+  private player: Player
+  private camera: Phaser.Cameras.Scene2D.Camera
+
+  public init(){
+    this.player = new Player​​(this, { tx: 10, ty: 10 })
   }
 
-  preload() {
-    console.log('Load assets.')
+  public preload(){
+    this.load.spritesheet('map_1', '../assets/extruded/map_1.png', { frameWidth: SpriteFrame.w + 2, frameHeight: SpriteFrame.h + 2 })
+    this.player.preload()
   }
 
-  create() {
-    console.log('Draw objects to canvas.')
+  public create(){
+    for(let row in groundLayer){
+      for(let col in groundLayer[row]){
+        this.add.sprite(parseInt(col) * SpriteFrame.w, parseInt(row) * SpriteFrame.h, 'map_1', groundLayer[row][col])
+          .setOrigin(0, 0)
+      }
+    }
+
+    this.player.create()
+    this.camera = this.cameras.main
+    this.camera.startFollow(this.player.gameObject())
   }
 
-  update() {
-    console.log('Call at every frames.')
+  public update(){
+    this.player.update()
   }
 }

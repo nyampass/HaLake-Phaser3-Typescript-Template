@@ -5,9 +5,9 @@ module.exports = {
     entry: './src/main.ts',
     mode: 'development',
     output: {
-        path: path.resolve(__dirname, 'dist'),
+        path: path.resolve(__dirname, 'dist_client'),
         filename: 'main.js',
-        publicPath: '/dist'
+        publicPath: '/dist_client'
     },
 
     resolve: {

@@ -1,14 +1,15 @@
 import * as Phaser from "phaser";
 import { Preload } from "./scenes/preload";
 import { Game } from "./scenes/game";
+import { GameFrame } from "./gameParameters";
 
 
 class Main extends Phaser.Game {
   constructor() {
     const config: Phaser.Types.Core.GameConfig = {
-      type: Phaser.AUTO,
-      width: 800,
-      height: 600,
+      type: Phaser.WEBGL,
+      width: GameFrame.w,
+      height: GameFrame.h
     };
     super(config);
 
